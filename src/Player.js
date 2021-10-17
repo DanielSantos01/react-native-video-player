@@ -4,7 +4,6 @@ import {
   TouchableWithoutFeedback,
   TouchableHighlight,
   TouchableOpacity,
-  ImageBackground,
   PanResponder,
   StyleSheet,
   Animated,
@@ -14,13 +13,13 @@ import {
   View,
   Dimensions,
   Text,
-  AppState
+  AppState,
 } from 'react-native';
-import { PlayButton, Time, Scrubber } from './VideoPlayerComponents/components';
+import { PlayButton } from './VideoPlayerComponents/components';
 import padStart from 'lodash/padStart';
 import MusicControl from 'react-native-music-control';
 import VideoSettings from './VideoSettings';
-import Orientation from 'react-native-orientation';
+import { Slider } from './VideoPlayerComponents';
 
 export default class Player extends Component {
   static defaultProps = {
@@ -56,8 +55,7 @@ export default class Player extends Component {
       rate: this.props.rate,
       isFavorite: this.props.isFavorite,
       isVideoSettingsOpen: this.props.isVideoSettingsOpen || false,
-      isFullscreen:
-        this.props.isFullScreen || this.props.resizeMode === 'cover' || false,
+      isFullscreen: true,
       showTimeRemaining: true,
       volumeTrackWidth: 0,
       volumeFillWidth: 0,
@@ -220,8 +218,6 @@ export default class Player extends Component {
     };
   }
   componentDidMount() {
-    Orientation.unlockAllOrientations();
-
     const position = this.calculateVolumePositionFromVolume();
     let state = this.state;
     this.setVolumePosition(position);
@@ -323,31 +319,15 @@ export default class Player extends Component {
     }
   }
 
-  /**
-   * For onSeek we clear scrubbing if set.
-   *
-   * @param {object} data The video meta data
-   */
-  _onSeek(data = {}) {
-    MusicControl.updatePlayback({
-      // state: MusicControl.STATE_PAUSED,
-      elapsedTime: data.currentTime,
-    });
+  _onSeek(time) {
+    if (typeof time !== 'number') return;
 
-    let state = this.state;
-    if (state.scrubbing) {
-      state.scrubbing = false;
-      state.currentTime = data.currentTime;
+    MusicControl.updatePlayback({ elapsedTime: time });
+    this.setState({ scrubbing: false, currentTime: time });
 
-      // Seeking may be false here if the user released the seek bar while the player was still processing
-      // the last seek command. In this case, perform the steps that have been postponed.
-      if (!state.seeking) {
-        this.setControlTimeout();
-        state.paused = state.originallyPaused;
-      }
-
-      this.setState(state);
-    }
+    if (this.state.seeking) return;
+    this.setControlTimeout();
+    this.setState({ paused: this.state.originallyPaused});
   }
 
   /**
@@ -808,30 +788,11 @@ export default class Player extends Component {
     return this.player.volumeWidth * this.state.volume;
   }
 
-  /**
-    | -------------------------------------------------------
-    | React Component functions
-    | -------------------------------------------------------
-    |
-    | Here we're initializing our listeners and getting
-    | the component ready using the built-in React
-    | Component methods
-    |
-    */
-
-  /**
-   * Before mounting, init our seekbar and volume bar
-   * pan responders.
-   */
   UNSAFE_componentWillMount() {
     this.initSeekPanResponder();
     this.initVolumePanResponder();
   }
 
-  /**
-   * To allow basic playback management from the outside
-   * we have to handle possible props changes to state changes
-   */
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (this.state.paused !== nextProps.paused) {
       this.setState({
@@ -848,31 +809,17 @@ export default class Player extends Component {
     }
   }
 
-  /**
-   * When the component is about to unmount kill the
-   * timeout less it fire in the prev/next scene
-   */
   componentWillUnmount() {
     this.mounted = false;
     this.clearControlTimeout();
-    Orientation.lockToPortrait();
     AppState.removeEventListener("change", this._handleAppStateChange);
   }
 
-  /**
-   * Get our seekbar responder going
-   */
   initSeekPanResponder() {
     this.player.seekPanResponder = PanResponder.create({
-      // Ask to be the responder.
       onStartShouldSetPanResponder: (evt, gestureState) => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => true,
 
-      /**
-       * When we start the pan tell the machine that we're
-       * seeking. This stops it from updating the seekbar
-       * position in the onProgress listener.
-       */
       onPanResponderGrant: (evt, gestureState) => {
         let state = this.state;
         this.clearControlTimeout();
@@ -887,9 +834,6 @@ export default class Player extends Component {
         this.setState(state);
       },
 
-      /**
-       * When panning, update the seekbar position, duh.
-       */
       onPanResponderMove: (evt, gestureState) => {
         const position = this.state.seekerOffset + gestureState.dx;
         this.setSeekerPosition(position);
@@ -917,11 +861,6 @@ export default class Player extends Component {
         }
       },
 
-      /**
-       * On release we update the time and seek to it in the video.
-       * If you seek to the end of the video we fire the
-       * onEnd callback
-       */
       onPanResponderRelease: (evt, gestureState) => {
         const time = this.calculateTimeFromSeekerPosition();
         let state = this.state;
@@ -941,9 +880,6 @@ export default class Player extends Component {
     });
   }
 
-  /**
-   * Initialize the volume pan responder.
-   */
   initVolumePanResponder() {
     this.player.volumePanResponder = PanResponder.create({
       onStartShouldSetPanResponder: (evt, gestureState) => true,
@@ -952,11 +888,6 @@ export default class Player extends Component {
         this.clearControlTimeout();
       },
 
-      /**
-       * Update the volume as we change the position.
-       * If we go to 0 then turn on the mute prop
-       * to avoid that weird static-y sound.
-       */
       onPanResponderMove: (evt, gestureState) => {
         let state = this.state;
         const position = this.state.volumeOffset + gestureState.dx;
@@ -973,9 +904,6 @@ export default class Player extends Component {
         this.setState(state);
       },
 
-      /**
-       * Update the offset...
-       */
       onPanResponderRelease: (evt, gestureState) => {
         let state = this.state;
         state.volumeOffset = state.volumePosition;
@@ -985,24 +913,6 @@ export default class Player extends Component {
     });
   }
 
-  /**
-    | -------------------------------------------------------
-    | Rendering
-    | -------------------------------------------------------
-    |
-    | This section contains all of our render methods.
-    | In addition to the typical React render func
-    | we also have all the render methods for
-    | the controls.
-    |
-    */
-
-  /**
-   * Standard render control function that handles
-   * everything except the sliders. Adds a
-   * consistent <TouchableHighlight>
-   * wrapper and styling.
-   */
   renderControl(children, callback, style = {}) {
     return (
       <TouchableHighlight
@@ -1018,17 +928,10 @@ export default class Player extends Component {
     );
   }
 
-  /**
-   * Renders an empty control, used to disable a control without breaking the view layout.
-   */
   renderNullControl() {
     return <View style={[styles.controls.control]} />;
   }
 
-  /**
-   * Groups the top bar controls together in an animated
-   * view and spaces them out.
-   */
   renderCenterControls() {
     return (
       <Animated.View
@@ -1226,17 +1129,12 @@ export default class Player extends Component {
       );
   }
   seekTo(time = 0) {
-    let state = this.state;
-    state.currentTime = time;
     this.player.ref.seek(time);
-    this.setState(state);
   }
 
   onSeekRelease(percent) {
-    const seconds = percent * this.state.duration;
-    this.setState({ currentTime: percent, seeking: false }, () => {
-      this.seekTo(seconds);
-    });
+    this.setState({ seeking: false });
+    this.seekTo(percent);
   }
   /**
    * Back button control
@@ -1288,78 +1186,6 @@ export default class Player extends Component {
       <Image source={source} />,
       this.methods.toggleFullscreen,
       styles.controls.fullscreen,
-    );
-  }
-
-  /**
-   * Render bottom control group and wrap it in a holder
-   */
-  renderBottomControls() {
-    let currentTime = 0;
-    let duration = 0;
-    let progress = 0;
-
-    if (this.state.currentTime && this.state.duration) {
-      currentTime = this.state.currentTime;
-      duration = this.state.duration;
-      progress = this.state.currentTime / this.state.duration;
-    }
-
-    return (
-      <Animated.View
-        style={[
-          styles.controls.bottom,
-          {
-            opacity: this.animations.bottomControl.opacity,
-            marginBottom: this.animations.bottomControl.marginBottom,
-            backgroundColor: 'rgba(12,34,56,0.8)',
-            justifyContent: 'flex-start',
-          },
-        ]}>
-        <SafeAreaView style={styles.topControls.bottomControlsView}>
-          <View style={{ width: '100%' }}>
-            <Time time={currentTime} completeDuration={duration} />
-          </View>
-
-          <View style={styles.topControls.bottomSliderView}>
-            <Scrubber
-              duration={this.getTime(
-                parseInt(this.state.duration ? this.state.duration : 0, 10),
-              )}
-              onSeek={(pos) => {
-                this._onSeek(pos);
-              }}
-              onSeekRelease={(pos) => {
-                this.onSeekRelease(pos);
-              }}
-              progress={progress}
-              theme={{
-                scrubberThumb: 'rgba(247,109,28,1)',
-                scrubberBar: 'rgba(247,109,28,1)',
-              }}
-              back={() => {
-                this.props.back();
-              }}
-              next={() => {
-                this.props.next();
-              }}
-              isRepeat={this.props.isRepeat}
-              isShuffle={this.props.isShuffle}
-              isAutoPlay={this.props.isAutoPlay}
-              repeat={() => {
-                this.props.repeat();
-              }}
-              shuffle={() => {
-                this.props.shuffle();
-              }}
-              autoPlayFunc={() => {
-                this.props.autoPlayFunc();
-              }}
-              isSplashScreen={false}
-            />
-          </View>
-        </SafeAreaView>
-      </Animated.View>
     );
   }
 
@@ -1532,7 +1358,18 @@ export default class Player extends Component {
           {this.renderLoader()}
           {this.renderTopControls()}
           {this.renderCenterControls()}
-          {this.renderBottomControls()}
+          <Slider
+            currentTime={this.state.currentTime}
+            duration={this.state.duration}
+            onSeek={this._onSeek.bind(this)}
+            onSeekRelease={this.onSeekRelease.bind(this)}
+            containerStyle={{
+              opacity: this.animations.bottomControl.opacity,
+              marginBottom: this.animations.bottomControl.marginBottom,
+              backgroundColor: 'rgba(12,34,56,0.8)',
+              justifyContent: 'flex-start',
+            }}
+          />
         </View>
       </TouchableWithoutFeedback>
       // </View>
@@ -1549,7 +1386,7 @@ const styles = {
   player: StyleSheet.create({
     container: {
       overflow: 'hidden',
-      backgroundColor: '#000',
+      backgroundColor: 'transparent',
       flex: 1,
       alignSelf: 'stretch',
       justifyContent: 'space-between',

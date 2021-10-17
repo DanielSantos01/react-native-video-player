@@ -1,6 +1,3 @@
-// import { NativeModules } from 'react-native';
+import VideoPlayer from './src/Player';
 
-// const { VideoPlayers } = NativeModules;
-
-import VideoPlayers from './src/Player';
-export default VideoPlayers;
+export default VideoPlayer;

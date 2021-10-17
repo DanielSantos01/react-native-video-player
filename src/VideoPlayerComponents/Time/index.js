@@ -2,8 +2,6 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Text, StyleSheet, Animated, Dimensions } from 'react-native'
 
-const backgroundColor = 'transparent'
-
 const styles = StyleSheet.create({
   text: {
     fontWeight: '400',

@@ -48,7 +48,7 @@ class Time extends Component {
       }]
     }
     return (
-      <Animated.View style={[animStyle, { width: 80, justifyContent: 'center', alignItems: 'center' }]}>
+      <Animated.View style={[animStyle, { width: 50, justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={styles.text}>{this.getTime(parseInt(this.props.time, 10))}</Text>
       </Animated.View>
     )

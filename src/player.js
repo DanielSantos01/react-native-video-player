@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import Video from 'react-native-video';
+import { Alert, NativeModules } from 'react-native';
+const { VideoPlayerManager } = NativeModules;
 import {
   TouchableWithoutFeedback,
   TouchableHighlight,
@@ -14,12 +16,13 @@ import {
   Dimensions,
   Text,
   AppState,
+  Platform,
 } from 'react-native';
-import { PlayButton } from './VideoPlayerComponents/components';
+import { PlayButton } from 'react-native-video-players/src/VideoPlayerComponents/components';
 import padStart from 'lodash/padStart';
 import MusicControl from 'react-native-music-control';
-import VideoSettings from './VideoSettings';
-import { Slider } from './VideoPlayerComponents';
+import VideoSettings from 'react-native-video-players/src/VideoSettings';
+import { Slider } from 'react-native-video-players/src/VideoPlayerComponents';
 
 export default class Player extends Component {
   static defaultProps = {
@@ -69,10 +72,11 @@ export default class Player extends Component {
       originallyPaused: false,
       scrubbing: false,
       loading: false,
-      currentTime: 0,
+      currentTime: this.props.initAt || 0,
       error: false,
       duration: 0,
-      appState: AppState.currentState
+      appState: AppState.currentState,
+      hasStarted: false,
     };
 
     /**
@@ -232,6 +236,17 @@ export default class Player extends Component {
     AppState.addEventListener("change", this._handleAppStateChange);
   }
 
+  /*
+  componentDidUpdate(prevProps) {
+    // Uso típico, (não esqueça de comparar as props):
+    if (this.props.initAt !== prevProps.initAt && this.props.initAt > 0) {
+      this.setState({ currentTime: this.props.initAt });
+      this._onSeek(this.props.initAt);
+      this.onSeekRelease(this.props.initAt);
+    }
+  }
+  */
+
   _handleAppStateChange = (nextAppState) => {
     this.setMusicControls();
     MusicControl.updatePlayback({
@@ -323,11 +338,10 @@ export default class Player extends Component {
     if (typeof time !== 'number') return;
 
     MusicControl.updatePlayback({ elapsedTime: time });
-    this.setState({ scrubbing: false, currentTime: time });
+    this.setState({ scrubbing: false, currentTime: time, hasStarted: true });
 
     if (this.state.seeking) return;
     this.setControlTimeout();
-    this.setState({ paused: this.state.originallyPaused});
   }
 
   /**
@@ -941,7 +955,7 @@ export default class Player extends Component {
             flex: 1,
             justifyContent: 'center',
             opacity: this.animations.topControl.opacity,
-            backgroundColor: 'rgba(12,34,56,0.8)',
+            backgroundColor: 'rgba(12,34,56,0.5)',
           },
         ]}>
         {this.state.showControls ? (
@@ -949,6 +963,7 @@ export default class Player extends Component {
             duration={this.state.duration}
             onPress={() => {
               this.methods.togglePlayPause();
+              !this.state.hasStarted && this.setState({ hasStarted: true });
             }}
             onPressForward={() => {
               this.seekTo(this.state.currentTime + 5);
@@ -967,6 +982,12 @@ export default class Player extends Component {
     );
   }
 
+  _allowFullScreen() {
+    !this.state.paused && this.methods.togglePlayPause();
+    if (Platform.OS === 'android') VideoPlayerManager.showVideoPlayer(this.props.source.uri);
+    else this.player.ref.presentFullscreenPlayer();
+  }
+
   renderTopControls() {
     return Dimensions.get('window').height > Dimensions.get('window').width ? (
       <Animated.View
@@ -975,7 +996,9 @@ export default class Player extends Component {
           {
             opacity: this.animations.topControl.opacity,
             marginTop: this.animations.topControl.marginTop,
-            backgroundColor: 'rgba(12,34,56,0.8)',
+            backgroundColor: 'rgba(12,34,56,0.5)',
+            borderTopRightRadius: 13,
+            borderTopLeftRadius: 13,
           },
         ]}>
 
@@ -983,13 +1006,12 @@ export default class Player extends Component {
           <View style={styles.topControls.row}>
             <View style={[styles.topControls.rowView, { flex: 1 }]}>
               <TouchableOpacity
-                onPress={() => {
-                  this.props.backToList();
-                }}
+                onPress={this._allowFullScreen.bind(this)}
+                style={{ marginLeft: 'auto' }}
                 hitSlop={styles.topControls.backHitSlop}>
                 <Image
                   style={styles.topControls.backIcon}
-                  source={require('./VideoPlayerComponents/components/images/back_white.png')}
+                  source={require('./VideoPlayerComponents/components/images/expand.png')}
                 />
               </TouchableOpacity>
             </View>
@@ -1189,89 +1211,6 @@ export default class Player extends Component {
     );
   }
 
-  renderSeekbar() {
-    return (
-      <View
-        style={styles.seekbar.container}
-        collapsable={false}
-        {...this.player.seekPanResponder.panHandlers}>
-        <View
-          style={styles.seekbar.track}
-          onLayout={(event) =>
-            (this.player.seekerWidth = event.nativeEvent.layout.width)
-          }
-          pointerEvents={'none'}>
-          <View
-            style={[
-              styles.seekbar.fill,
-              {
-                width: this.state.seekerFillWidth,
-                backgroundColor: this.props.seekColor || '#FFF',
-              },
-            ]}
-            pointerEvents={'none'}
-          />
-        </View>
-        <View
-          style={[styles.seekbar.handle, { left: this.state.seekerPosition }]}
-          pointerEvents={'none'}>
-          <View
-            style={[
-              styles.seekbar.circle,
-              { backgroundColor: this.props.seekColor || '#FFF' },
-            ]}
-            pointerEvents={'none'}
-          />
-        </View>
-      </View>
-    );
-  }
-
-  /**
-   * Render the play/pause button and show the respective icon   
-   */
-  renderPlayPause() {
-    let source =
-      this.state.paused === true
-        ? require('./VideoPlayerComponents/components/images/Play.png')
-        : require('./VideoPlayerComponents/components/images/pause.png');
-    return this.renderControl(
-      <Image source={source} />,
-      this.methods.togglePlayPause,
-      styles.controls.playPause,
-    );
-  }
-
-  /**
-   * Render our title...if supplied.
-   */
-  renderTitle() {
-    if (this.opts.title) {
-      return (
-        <View style={[styles.controls.control, styles.controls.title]}>
-          <Text
-            style={[styles.controls.text, styles.controls.titleText]}
-            numberOfLines={1}>
-            {this.opts.title || ''}
-          </Text>
-        </View>
-      );
-    }
-
-    return null;
-  }
-
-  /**
-   * Show our timer.
-   */
-  renderTimer() {
-    return this.renderControl(
-      <Text style={styles.controls.timerText}>{this.calculateTime()}</Text>,
-      this.methods.toggleTimer,
-      styles.controls.timer,
-    );
-  }
-
   /**
    * Show loading icon
    */
@@ -1316,9 +1255,6 @@ export default class Player extends Component {
     return null;
   }
 
-  /**
-   * Provide all of our options and render the whole component.
-   */
   render() {
     return (
       <TouchableWithoutFeedback
@@ -1338,7 +1274,8 @@ export default class Player extends Component {
           <Video
             {...this.props}
             ref={(videoPlayer) => (this.player.ref = videoPlayer)}
-            resizeMode={'contain'}
+            resizeMode='contain'
+            fullscreen={this.state.isFullscreen}
             volume={this.state.volume}
             paused={this.state.paused}
             muted={this.state.muted}
@@ -1354,6 +1291,23 @@ export default class Player extends Component {
             style={[styles.player.video, this.styles.videoStyle]}
             source={this.props.source}
           />
+          {!this.state.hasStarted && this.props.thumbUri ? (
+            <Image
+              source={{ uri: this.props.thumbUri }}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 13,
+                overflow: 'hidden',
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                zIndex: -9
+              }}
+            />
+          ) : <></>}
           {this.renderError()}
           {this.renderLoader()}
           {this.renderTopControls()}
@@ -1365,31 +1319,26 @@ export default class Player extends Component {
             onSeekRelease={this.onSeekRelease.bind(this)}
             containerStyle={{
               opacity: this.animations.bottomControl.opacity,
-              marginBottom: this.animations.bottomControl.marginBottom,
-              backgroundColor: 'rgba(12,34,56,0.8)',
+              backgroundColor: 'rgba(12,34,56,0.5)',
               justifyContent: 'flex-start',
+              borderBottomLeftRadius: 13,
+              borderBottomRightRadius: 13,
             }}
           />
         </View>
       </TouchableWithoutFeedback>
-      // </View>
     );
   }
 }
 
-/**
- * This object houses our styles. There's player
- * specific styles and control specific ones.
- * And then there's volume/seeker styles.
- */
 const styles = {
   player: StyleSheet.create({
     container: {
-      overflow: 'hidden',
       backgroundColor: 'transparent',
       flex: 1,
       alignSelf: 'stretch',
       justifyContent: 'space-between',
+      borderRadius: 13,
     },
     video: {
       overflow: 'hidden',
@@ -1398,6 +1347,7 @@ const styles = {
       right: 0,
       bottom: 0,
       left: 0,
+      zIndex: -10,
     },
   }),
   error: StyleSheet.create({
@@ -1437,8 +1387,7 @@ const styles = {
       alignItems: 'center',
     },
     backIcon: {
-      margin: 7,
-      height: 22,
+      margin: 10,
     },
     favIcon: {
       marginRight: 15,

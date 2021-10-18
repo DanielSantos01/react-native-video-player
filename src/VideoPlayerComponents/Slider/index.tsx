@@ -1,11 +1,12 @@
 import React from 'react';
 
-import {  Scrubber, Time } from '..';
+import {  Scrubber } from '..';
 import {
   Container,
   ContentContainer,
-  TimerContainer,
   ScrubberContainer,
+  RowContainer,
+  TimeText,
 } from './styles';
 import { SliderProps } from './interfaces';
 
@@ -16,13 +17,20 @@ const Slider: React.FC<SliderProps> = ({
   onSeek,
   onSeekRelease,
 }) => {
+  const addZeros = (time: number): string | number => (time < 10) ? (`0${time}`) : time;
+
+  const getTime = (time: number): string => {
+    const secs: number = time % 60;
+    const s2: number = (time - secs) / 60;
+    const mins: number = s2 % 60;
+    const hrs: number = (s2 - mins) / 60;
+    const hours: string = addZeros(hrs) > 0 ? `${addZeros(hrs)}:` : '';
+    return `${hours}${addZeros(mins)}:${addZeros(secs)}`
+  }
+
   return (
     <Container style={containerStyle}>
       <ContentContainer>
-        <TimerContainer>
-          <Time time={currentTime} completeDuration={duration} />
-        </TimerContainer>
-
         <ScrubberContainer>
           <Scrubber
             duration={duration}
@@ -35,6 +43,11 @@ const Slider: React.FC<SliderProps> = ({
             }}
           />
         </ScrubberContainer>
+
+        <RowContainer>
+          <TimeText>{getTime(parseInt(currentTime.toString(), 10))}</TimeText>
+          <TimeText>{getTime(parseInt(duration.toString(), 10))}</TimeText>
+        </RowContainer>
       </ContentContainer>
     </Container>
   );

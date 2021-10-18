@@ -1,0 +1,6 @@
+com/reactlibrary/BuildConfig.java
+ com.reactlibrary.BuildConfig
+com/reactlibrary/VideoPlayersModule.java
+ com.reactlibrary.VideoPlayersModule
+com/reactlibrary/VideoPlayersPackage.java
+ com.reactlibrary.VideoPlayersPackage

@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import Video from 'react-native-video';
-import { Alert, NativeModules } from 'react-native';
-const { VideoPlayerManager } = NativeModules;
 import {
   TouchableWithoutFeedback,
   TouchableHighlight,
@@ -17,9 +15,13 @@ import {
   Text,
   AppState,
   Platform,
+  NativeModules,
+  BackHandler,
+  Alert,
 } from 'react-native';
 import { PlayButton } from 'react-native-video-players/src/VideoPlayerComponents/components';
 import padStart from 'lodash/padStart';
+import Orientation from 'react-native-orientation';
 import MusicControl from 'react-native-music-control';
 import VideoSettings from 'react-native-video-players/src/VideoSettings';
 import { Slider } from 'react-native-video-players/src/VideoPlayerComponents';
@@ -49,6 +51,7 @@ export default class Player extends Component {
      * All of our values that are updated by the
      * methods and listeners in this class
      */
+    this.props.unlockOrientations && Orientation.unlockAllOrientations();
     this.state = {
       // Video
       resizeMode: this.props.resizeMode,
@@ -58,7 +61,7 @@ export default class Player extends Component {
       rate: this.props.rate,
       isFavorite: this.props.isFavorite,
       isVideoSettingsOpen: this.props.isVideoSettingsOpen || false,
-      isFullscreen: true,
+      isFullscreen: false,
       showTimeRemaining: true,
       volumeTrackWidth: 0,
       volumeFillWidth: 0,
@@ -78,6 +81,13 @@ export default class Player extends Component {
       appState: AppState.currentState,
       hasStarted: false,
     };
+    this.onRotated = this.onRotated.bind(this);
+    this.animToInline = this.animToInline.bind(this);
+    this.animToFullscreen = this.animToFullscreen.bind(this);
+    this.BackHandler = this.BackHandler.bind(this);
+
+    this.animInline = new Animated.Value(Dimensions.get('window').width * 0.5625)
+    this.animFullscreen = new Animated.Value(Dimensions.get('window').width * 0.5625)
 
     /**
      * Any options that can be set at init.
@@ -95,7 +105,7 @@ export default class Player extends Component {
     this.events = {
       onError: this.props.onError || this._onError.bind(this),
       onBack: this.props.onBack || this._onBack.bind(this),
-      onEnd: this.props.onEnd || this._onEnd.bind(this),
+      onEnd: this._onEnd.bind(this),
       onScreenTouch: this._onScreenTouch.bind(this),
       onEnterFullscreen: this.props.onEnterFullscreen,
       onExitFullscreen: this.props.onExitFullscreen,
@@ -135,8 +145,6 @@ export default class Player extends Component {
       scrubbingTimeStep: this.props.scrubbing || 0,
       tapAnywhereToPause: this.props.tapAnywhereToPause,
     };
-
-
 
     MusicControl.enableControl('play', true);
     MusicControl.enableControl('pause', true);
@@ -234,18 +242,10 @@ export default class Player extends Component {
     MusicControl.enableBackgroundMode(true);
 
     AppState.addEventListener("change", this._handleAppStateChange);
-  }
 
-  /*
-  componentDidUpdate(prevProps) {
-    // Uso típico, (não esqueça de comparar as props):
-    if (this.props.initAt !== prevProps.initAt && this.props.initAt > 0) {
-      this.setState({ currentTime: this.props.initAt });
-      this._onSeek(this.props.initAt);
-      this.onSeekRelease(this.props.initAt);
-    }
+    Dimensions.addEventListener('change', this.onRotated)
+    BackHandler.addEventListener('hardwareBackPress', this.BackHandler)
   }
-  */
 
   _handleAppStateChange = (nextAppState) => {
     this.setMusicControls();
@@ -274,6 +274,7 @@ export default class Player extends Component {
    * @param {object} data The video meta data
    */
   _onLoad(data = {}) {
+    !this.state.hasStarted && this.player.ref.seek(this.state.currentTime);
     MusicControl.setNowPlaying({
       title: this.props.title,
       // artwork: 'https://i.imgur.com/e1cpwdo.png', // URL or RN's image require()
@@ -326,10 +327,6 @@ export default class Player extends Component {
         this.setSeekerPosition(position);
       }
 
-      if (typeof this.props.onProgress === 'function') {
-        this.props.onProgress(...arguments);
-      }
-
       this.setState(state);
     }
   }
@@ -338,6 +335,7 @@ export default class Player extends Component {
     if (typeof time !== 'number') return;
 
     MusicControl.updatePlayback({ elapsedTime: time });
+    this.props.onProgress && this.props.onProgress(time);
     this.setState({ scrubbing: false, currentTime: time, hasStarted: true });
 
     if (this.state.seeking) return;
@@ -350,7 +348,10 @@ export default class Player extends Component {
    * Either close the video or go to a
    * new page.
    */
-  _onEnd() { }
+  _onEnd() {
+    this.props.onProgress && this.props.onProgress(this.state.currentTime);
+    this.props.onEnd && this.props.onEnd();
+  }
 
   /**
    * Set the error state to true which then
@@ -423,6 +424,49 @@ export default class Player extends Component {
    */
   clearControlTimeout() {
     clearTimeout(this.player.controlTimeout);
+  }
+
+  animToFullscreen(height) {
+    this.setState({ isFullscreen: !this.state.isFullscreen });
+    Animated.parallel([
+      Animated.timing(this.animFullscreen, { toValue: height, duration: 200 }),
+      Animated.timing(this.animInline, { toValue: height, duration: 200 })
+    ]).start()
+  }
+
+  animToInline(height) {
+    const newHeight = height || this.state.inlineHeight
+    Animated.parallel([
+      Animated.timing(this.animFullscreen, { toValue: newHeight, duration: 100 }),
+      Animated.timing(this.animInline, { toValue: this.state.inlineHeight, duration: 100 })
+    ]).start()
+  }
+
+  onRotated({ window: { width, height } }) {
+    const orientation = width > height ? 'LANDSCAPE' : 'PORTRAIT'
+    if (orientation === 'LANDSCAPE') {
+      this.setState({ isFullscreen: true }, () => {
+        this.animToFullscreen(height)
+      })
+      return
+    }
+    if (orientation === 'PORTRAIT') {
+      this.setState({ isFullscreen: false }, this.animToInline)
+      return
+    }
+    if (this.state.isFullscreen) this.animToFullscreen(height)
+  }
+
+  BackHandler() {
+    if (this.state.isFullscreen) {
+      this.setState({ isFullscreen: false }, () => {
+        this.animToInline()
+        Orientation.lockToPortrait()
+      })
+      return true
+    }
+    Orientation.lockToPortrait()
+    return false
   }
 
   /**
@@ -583,10 +627,7 @@ export default class Player extends Component {
    * Toggle playing state on <Video> component
    */
   _togglePlayPause() {
-    let state = this.state;
-    state.paused = !state.paused;
-
-    if (state.paused) {
+    if (this.state.paused) {
       typeof this.events.onPause === 'function' && this.events.onPause();
       MusicControl.updatePlayback({
         state: MusicControl.STATE_PAUSED,
@@ -600,7 +641,7 @@ export default class Player extends Component {
       });
     }
 
-    this.setState(state);
+    this.setState({ paused: !this.state.paused });
   }
 
   /**
@@ -608,9 +649,7 @@ export default class Player extends Component {
    * video duration in the timer control
    */
   _toggleTimer() {
-    let state = this.state;
-    state.showTimeRemaining = !state.showTimeRemaining;
-    this.setState(state);
+    this.setState({ showTimeRemaining: !showTimeRemaining });
   }
 
   /**
@@ -736,6 +775,7 @@ export default class Player extends Component {
    * @param {float} time time to seek to in ms
    */
   seekTo(time = 0) {
+    if (time === 0) return;
     let state = this.state;
     state.currentTime = time;
     this.player.ref.seek(time);
@@ -802,18 +842,19 @@ export default class Player extends Component {
     return this.player.volumeWidth * this.state.volume;
   }
 
+  componentDidUpdate(prevProps) {
+    // Uso típico, (não esqueça de comparar as props):
+    if (this.props.initAt !== prevProps.initAt) {
+      this.setState({ currentTime: this.props.initAt, hasStarted: false })
+    }
+  }
+
   UNSAFE_componentWillMount() {
     this.initSeekPanResponder();
     this.initVolumePanResponder();
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (this.state.paused !== nextProps.paused) {
-      this.setState({
-        paused: nextProps.paused,
-      });
-    }
-
     if (this.styles.videoStyle !== nextProps.videoStyle) {
       this.styles.videoStyle = nextProps.videoStyle;
     }
@@ -821,12 +862,21 @@ export default class Player extends Component {
     if (this.styles.containerStyle !== nextProps.style) {
       this.styles.containerStyle = nextProps.style;
     }
+    
+    if (this.state.initAt !== nextProps.initAt) {
+      this.setState({ currentTime: nextProps.initAt });
+    }
   }
 
   componentWillUnmount() {
     this.mounted = false;
     this.clearControlTimeout();
     AppState.removeEventListener("change", this._handleAppStateChange);
+
+    Dimensions.removeEventListener('change', this.onRotated)
+    BackHandler.removeEventListener('hardwareBackPress', this.BackHandler)
+    Orientation.lockToPortrait();
+    this.props.onProgress && this.props.onProgress(this.state.currentTime);
   }
 
   initSeekPanResponder() {
@@ -842,9 +892,6 @@ export default class Player extends Component {
         state.seeking = true;
         state.originallyPaused = state.paused;
         state.scrubbing = false;
-        if (this.player.scrubbingTimeStep > 0) {
-          state.paused = true;
-        }
         this.setState(state);
       },
 
@@ -879,14 +926,12 @@ export default class Player extends Component {
         const time = this.calculateTimeFromSeekerPosition();
         let state = this.state;
         if (time >= state.duration && !state.loading) {
-          state.paused = true;
           this.events.onEnd();
         } else if (state.scrubbing) {
           state.seeking = false;
         } else {
           this.seekTo(time);
           this.setControlTimeout();
-          state.paused = state.originallyPaused;
           state.seeking = false;
         }
         this.setState(state);
@@ -983,8 +1028,11 @@ export default class Player extends Component {
   }
 
   _allowFullScreen() {
-    !this.state.paused && this.methods.togglePlayPause();
-    if (Platform.OS === 'android') VideoPlayerManager.showVideoPlayer(this.props.source.uri);
+    if (Platform.OS === 'android' && this.props.androidFullscreenCallback) {
+      if (!this.state.paused) this.methods.togglePlayPause();
+      this.props.onProgress && this.props.onProgress(this.state.currentTime);
+      this.props.androidFullscreenCallback();
+    }
     else this.player.ref.presentFullscreenPlayer();
   }
 
@@ -1071,7 +1119,7 @@ export default class Player extends Component {
             {
               opacity: this.animations.topControl.opacity,
               marginTop: this.animations.topControl.marginTop,
-              backgroundColor: 'rgba(12,34,56,0.8)',
+              backgroundColor: 'rgba(12,34,56,0.5)',
             },
           ]}>
 
@@ -1080,78 +1128,18 @@ export default class Player extends Component {
 
               <View style={[styles.topControls.rowView, { flex: 1 }]}>
                 <TouchableOpacity
-                  onPress={() => {
-                    this.props.backToList();
-                  }}
+                  onPress={this.props.onDisableFullscreen}
                   hitSlop={styles.topControls.backHitSlop}>
                   <Image
                     style={styles.topControls.backIcon}
                     source={require('./VideoPlayerComponents/components/images/back_white.png')}
                   />
                 </TouchableOpacity>
-                <Text
-                  style={[styles.topControls.title]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
-                  {this.props.title}
-                </Text>
-                <Text style={styles.topControls.landscapeTitle}>
-                  {this.getTime(parseInt(this.state.duration, 10))}
-                </Text>
-              </View>
-
-              <View style={styles.topControls.rowView}>
-                {this.props.isFavoriteShow ? <View style={styles.topControls.btnContainer}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      this.props.favorite();
-                    }}
-                    hitSlop={styles.topControls.commonHitSlop}>
-                    <Image
-                      style={styles.topControls.favIcon}
-                      source={
-                        this.props.isFavorite
-                          ? require('./VideoPlayerComponents/components/images/favourite.png')
-                          : require('./VideoPlayerComponents/components/images/unfavourite.png')
-                      }
-                    />
-                  </TouchableOpacity>
-                </View> : null}
-
-                {this.props.isShareShow ? <View style={styles.topControls.btnContainer}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      this.props.share();
-                    }}
-                    hitSlop={styles.topControls.commonHitSlop}>
-                    <Image
-                      style={styles.topControls.shareIcon}
-                      source={require('./VideoPlayerComponents/components/images/share.png')}
-                    />
-                  </TouchableOpacity>
-                </View> : null}
-
-                {this.props.isSettingShow ? <View style={styles.topControls.btnContainer}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      this.props.onMorePress();
-                    }}
-                    hitSlop={styles.topControls.commonHitSlop}>
-                    <Image
-                      style={{ marginRight: 15 }}
-                      source={require('./VideoPlayerComponents/components/images/icon_Settings.png')}
-                    />
-                  </TouchableOpacity>
-                </View> : null}
-
               </View>
             </View>
           </View>
         </Animated.View>
       );
-  }
-  seekTo(time = 0) {
-    this.player.ref.seek(time);
   }
 
   onSeekRelease(percent) {
@@ -1259,8 +1247,8 @@ export default class Player extends Component {
     return (
       <TouchableWithoutFeedback
         onPress={this.events.onScreenTouch}
-        style={[styles.player.container, this.styles.containerStyle]}>
-        <View style={[styles.player.container, this.styles.containerStyle]}>
+        style={styles.player.container}>
+        <Animated.View style={styles.player.container}>
           {this.props.isVideoSettingsOpen ? (
             <VideoSettings
               isOpen={this.props.isVideoSettingsOpen}
@@ -1275,7 +1263,6 @@ export default class Player extends Component {
             {...this.props}
             ref={(videoPlayer) => (this.player.ref = videoPlayer)}
             resizeMode='contain'
-            fullscreen={this.state.isFullscreen}
             volume={this.state.volume}
             paused={this.state.paused}
             muted={this.state.muted}
@@ -1283,12 +1270,11 @@ export default class Player extends Component {
             onLoadStart={this.events.onLoadStart}
             onProgress={this.events.onProgress}
             onError={this.events.onError}
-            fullscreenOrientation={'all'}
             style={[styles.player.video, this.styles.videoStyle]}
             onLoad={this.events.onLoad}
             onEnd={this.events.onEnd}
             onSeek={this.events.onSeek}
-            style={[styles.player.video, this.styles.videoStyle]}
+            style={styles.player.video}
             source={this.props.source}
           />
           {!this.state.hasStarted && this.props.thumbUri ? (
@@ -1325,7 +1311,7 @@ export default class Player extends Component {
               borderBottomRightRadius: 13,
             }}
           />
-        </View>
+        </Animated.View>
       </TouchableWithoutFeedback>
     );
   }
@@ -1348,6 +1334,8 @@ const styles = {
       bottom: 0,
       left: 0,
       zIndex: -10,
+      width: '100%',
+      height: '100%',
     },
   }),
   error: StyleSheet.create({

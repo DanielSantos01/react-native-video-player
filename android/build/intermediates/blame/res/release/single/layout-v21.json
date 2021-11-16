@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/layout-v21/notification_template_icon_group.xml",
+        "source": "/root/.gradle/caches/transforms-3/c85619a5119d7a825cc3cdbb151e60f7/transformed/core-1.0.1/res/layout-v21/notification_template_icon_group.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/layout-v21/notification_action.xml",
+        "source": "/root/.gradle/caches/transforms-3/c85619a5119d7a825cc3cdbb151e60f7/transformed/core-1.0.1/res/layout-v21/notification_action.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/layout-v21/notification_action_tombstone.xml",
+        "source": "/root/.gradle/caches/transforms-3/c85619a5119d7a825cc3cdbb151e60f7/transformed/core-1.0.1/res/layout-v21/notification_action_tombstone.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/layout-v21/notification_template_custom_big.xml",
+        "source": "/root/.gradle/caches/transforms-3/c85619a5119d7a825cc3cdbb151e60f7/transformed/core-1.0.1/res/layout-v21/notification_template_custom_big.xml"
+    }
+]

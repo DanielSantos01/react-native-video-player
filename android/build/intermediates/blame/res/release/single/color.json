@@ -1,0 +1,82 @@
+[
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_search_url_text.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_search_url_text.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_btn_checkable.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_btn_checkable.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_seek_thumb.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_seek_thumb.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_edittext.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_edittext.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/switch_thumb_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/switch_thumb_material_light.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_background_cache_hint_selector_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_background_cache_hint_selector_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_switch_track.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_switch_track.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_primary_text_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_primary_text_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_spinner.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_spinner.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_primary_text_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_primary_text_material_light.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_secondary_text_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_secondary_text_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_hint_foreground_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_hint_foreground_material_light.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_secondary_text_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_secondary_text_material_light.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_primary_text_disable_only_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_primary_text_disable_only_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/switch_thumb_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/switch_thumb_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_btn_colored_text_material.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_btn_colored_text_material.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_background_cache_hint_selector_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_background_cache_hint_selector_material_light.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_tint_default.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_tint_default.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_hint_foreground_material_dark.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_hint_foreground_material_dark.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/color/abc_primary_text_disable_only_material_light.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/color/abc_primary_text_disable_only_material_light.xml"
+    }
+]

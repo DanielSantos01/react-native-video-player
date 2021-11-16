@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/notification_action_background.xml",
+        "source": "/root/.gradle/caches/transforms-3/c85619a5119d7a825cc3cdbb151e60f7/transformed/core-1.0.1/res/drawable-v21/notification_action_background.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/abc_edit_text_material.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/drawable-v21/abc_edit_text_material.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/abc_action_bar_item_background_material.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/drawable-v21/abc_action_bar_item_background_material.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/abc_btn_colored_material.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/drawable-v21/abc_btn_colored_material.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/abc_list_divider_material.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/drawable-v21/abc_list_divider_material.xml"
+    },
+    {
+        "merged": "/home/daniel/Documentos/projects/prepi/prepi-app/node_modules/react-native-video-players/android/build/intermediates/res/merged/release/drawable-v21/abc_dialog_material_background.xml",
+        "source": "/root/.gradle/caches/transforms-3/c7c0db447fa6f636c1672e55172b6ce0/transformed/appcompat-1.0.2/res/drawable-v21/abc_dialog_material_background.xml"
+    }
+]
